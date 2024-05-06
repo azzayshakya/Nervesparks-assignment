@@ -1,19 +1,15 @@
 <script>
+	// import { HOME } from './../../.svelte-kit/ambient.d.ts';
 
-import Main from '../component/Main.svelte'
-import Header from '../component/Header.svelte';
+
+import HOME from './Home/+page.svelte'
 
 </script>
 
 
-<div class="ajay">
-	dhkfjlasj  is here  not bu
-</div>
 <div>
-	<Main/>
+<HOME/>
 </div>
-<div>
+<div></div>
 	
-	<Header/>
-</div>
-
+	
