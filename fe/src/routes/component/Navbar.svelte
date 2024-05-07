@@ -61,6 +61,11 @@
   
   
     <div>
+
+
+      <button class="button" on:click={handleLogin}>Login</button>
+            <button class="button" on:click={handleSignup}>Signup</button>
+            <button class="button" on:click={handleLogout}>Logout</button>
           <!-- {#if localStorage.getItem("authToken")}
             <button class="button" on:click={handleLogout}>Logout</button>
           {:else}

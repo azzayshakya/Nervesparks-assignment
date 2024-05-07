@@ -14,11 +14,10 @@ app.use(cors({
 
  
 app.use(express.json());
-app.use(require("./routes/CreateUser"));
-app.use( require("./routes/LoginUser"));
-app.use( require("./routes/DealerSignUp"));
-app.use( require("./routes/DealerLogin"));
-app.use( require("./routes/AllVehicle"));
+
+app.use( require("./Routes/Auth"));
+app.use( require("./Routes/Deal"));
+
 
 
 
