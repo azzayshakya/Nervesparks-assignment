@@ -1,36 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const Vehicle = require("../models/Vehicle");
+const Car=require('../models/Vehicle')
 
-router.post("/AllVehicle", async (req, res) => {
-    try {
-        const data = await Vehicle.find();   
-        res.status(200).json({ success: true, data });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, error: "Internal Server Error" });
+router.get('/cars',async(req,res)=>{
+    try{
+        const cars=await Car.find({})
+        console.log("hyyy")
+        console.log(cars)
+        res.status(200).json({ success:true,
+            data:cars,
+            error:null
+        })
     }
-});
+    catch(e){
+        console.log("err:",e)
+        res.status(500).json({success:false,
+            data:null,
+            error:"error in cars data  reading"
+        })
+    }
+    
+})
 
-
-// const express = require('express');
-// const router = express.Router();
-// const Vehicle = require("../models/Vehicle");
 
 
 router.post("/sellCar", async (req, res) => {
     try {
-        const { carName, model, type, about } = req.body;
-
-        // Here you can perform any necessary validation or processing with the received data
-        
-        // Example: Saving the car information to the database
-        // Replace this with your actual logic
-        const newVehicle = new Vehicle({
-            carName,
+        const { name, type, model, car_info } = req.body;
+        console.log(req.body)
+        const newVehicle = new Car({
+            name,
             model,
             type,
-            about
+            car_info
         });
         await newVehicle.save();
 
@@ -40,7 +42,5 @@ router.post("/sellCar", async (req, res) => {
         res.status(500).json({ success: false, error: "Internal Server Error" });
     }
 });
-// module.exports = router;
-
 
 module.exports = router;

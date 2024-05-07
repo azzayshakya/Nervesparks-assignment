@@ -32,7 +32,7 @@
       goto('DealerAuth');
     }
     function handleViewItem(){
-       goto("") 
+       goto("/AllVehicles") 
     }
   </script>
   
@@ -50,6 +50,8 @@
         </li>
         <li>
             <button class="button" on:click={handleViewItem}>view vehical</button>
+            <!-- <a href="/SellVehicle">Sell vehicle</a> -->
+
         </li>
         <li>
             <a href="/SellVehicle">Sell vehicle</a>
@@ -59,12 +61,12 @@
   
   
     <div>
-        <!-- {#if localStorage.getItem("authToken")}
-          <button class="button" on:click={handleLogout}>Logout</button>
-        {:else}
-          <button class="button" on:click={handleLogin}>Login</button>
-          <button class="button" on:click={handleSignup}>Signup</button>
-        {/if} -->
+          <!-- {#if localStorage.getItem("authToken")}
+            <button class="button" on:click={handleLogout}>Logout</button>
+          {:else}
+            <button class="button" on:click={handleLogin}>Login</button>
+            <button class="button" on:click={handleSignup}>Signup</button>
+          {/if} -->
       </div>
   </div>
   

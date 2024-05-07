@@ -1,32 +1,38 @@
-// models/user.js
+const mongoose=require('mongoose')
+// const SoldVehicle = require('./sold_vehicle')
 
-const mongoose = require('mongoose');
+mongoose.pluralize(false)
 
-const VehicleSchema = new mongoose.Schema({
-//     car_id: {
-//     type: String,
-//     required: true
-//   },
-  carName: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  type: {
-    type: String,
-    required: true
-  },
-  model: {
-    type: String,
-    required: true
-  },
-  about:{
-    type: String,
-    required: true
+const carSchema=mongoose.Schema({
+    type:{
+        type:String,
+        required:true
+    },
+    name:{
+        type:String,
+        required:true
+    },
+    model:{
+        type:String,
+        required:true
+    },
+    car_info:{
+        type:String,
+        required:true
+    }
+})
 
-  }
-});
 
-const Vehicle = mongoose.model('AllVehicles', VehicleSchema);
 
-module.exports = Vehicle;
+carSchema.set('toJSON',{
+    transform:(document,returnedObject)=>{
+        returnedObject.id=returnedObject._id.toString()
+        delete returnedObject._id
+        delete returnedObject.__v
+    }
+})
+
+
+const Car=mongoose.model('Car',carSchema)
+
+module.exports=Car

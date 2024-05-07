@@ -2,19 +2,20 @@
     import { onMount } from 'svelte';
     import Navbar from '../component/Navbar.svelte';
   
-      /** @type {Array<{ name: string, photo: string, model: string, info: string, id: string }>} */
+      /** @type {Array<{ name: string, model: string, car_info: string, type:string,id: string }>} */
   let vehicles = [];
   
     const AllVehicle = async () => {
       try {
-        const response = await fetch('http://localhost:4000/AllVehicle', {
-          method: 'POST',
+        const response = await fetch('http://localhost:4000/cars', {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json'
           }
         });
   
         const json = await response.json();
+        // console.log(json)
   
         if (!json.success) {
           alert(json.message);
@@ -29,7 +30,7 @@
   
     onMount(async () => {
       vehicles = await AllVehicle();
-    });
+    });  
   </script>
   
   <div>
@@ -42,12 +43,12 @@
       {#each vehicles as vehicle}
         <li>
           <h2>{vehicle.name}</h2>
-          <img src={vehicle.photo} alt={vehicle.name} style="max-width: 200px;"/>
           <p>Model: {vehicle.model}</p>
-          <p>Info: {vehicle.info}</p>
+          <p>Info: {vehicle.car_info}</p>
+          <p>Type: {vehicle.type}</p>
           <p>ID: {vehicle.id}</p>
         </li>
-      {/each}
+      {/each} 
     </ul>
   </div>
   
