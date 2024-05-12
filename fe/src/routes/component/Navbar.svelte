@@ -1,7 +1,7 @@
 <script>
     import { goto } from '$app/navigation';
-    import Home from '../Home/+page.svelte'
-    import DealerAuth from '../DealerAuth/+page.svelte'
+    // import Home from '../Home/+page.svelte'
+  
  
    
     function handleHome() {
@@ -23,6 +23,8 @@
     function handleLogout() {
       console.log("Logout clicked");
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userEmail');
+
       console.log("after remove item",localStorage.getItem("authToken"))
       // Navigate to home or any other appropriate page after logout
       goto('Home');
@@ -46,15 +48,15 @@
           <button class="button" on:click={handleHome}>Home</button>
         </li>
         <li>
-            <button class="button" on:click={handleDealer}>Dealer</button>
+            <!-- <button class="button" on:click={handleDealer}>Dealer</button> -->
         </li>
         <li>
-            <button class="button" on:click={handleViewItem}>view vehical</button>
+            <!-- <button class="button" on:click={handleViewItem}>view vehical</button> -->
             <!-- <a href="/SellVehicle">Sell vehicle</a> -->
 
         </li>
         <li>
-            <a href="/SellVehicle">Sell vehicle</a>
+            <!-- <a href="/SellVehicle">Sell vehicle</a> -->
         </li>
       </ol>
     </div>

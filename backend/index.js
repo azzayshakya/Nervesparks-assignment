@@ -1,8 +1,9 @@
 const express=require('express');
+const logger=require('morgan')
 const connectDb = require('./db');
 const port=4000;
 const app= express();
-
+app.use(logger('dev'))
 const cors = require('cors');
 app.use(cors({
     origin: '*',
@@ -12,18 +13,13 @@ app.use(cors({
 // app.use(express.json({ limit: '10mb' }));
 // app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
- 
 app.use(express.json());
 
-app.use( require("./Routes/Auth"));
-app.use( require("./Routes/Deal"));
+app.use('/',require('./routes/Auth'))
+// app.use(require('./middleware/jwt_verify'))
 
+app.use('/',require('./routes/Deal'))
 
-
-
-app.get("/",(req,res)=>{
-    res.send("hey ajju how are you , this is your zobs website")
-})
 
 
 

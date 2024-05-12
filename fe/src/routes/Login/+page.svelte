@@ -5,6 +5,8 @@
   
   import { goto } from '$app/navigation';
       import Home from "../Home/+page.svelte"
+      console.log("datababy",localStorage.getItem("authToken"),localStorage.getItem("userEmail"))
+
   
   
       function handleHomeClick() {
@@ -44,6 +46,7 @@
           });
     
           const json = await response.json();
+          console.log(json)
     
           if(!json.success){
               alert(json.message)
@@ -57,10 +60,6 @@
               goto("/")
   
           }
-    
-          localStorage.setItem('authToken', json.authToken);
-          localStorage.setItem('userEmail', email);
-          alert('Login successful');
         } catch (error) {
           console.error(error);
           alert('An error occurred while logging in');

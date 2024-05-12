@@ -101,8 +101,8 @@ const authControllers={
         }
         else{
 
-            console.log("as a dealer")
-            const user=await User.findOne({dealership_email:email})
+            console.log("as a user")
+            const user=await User.findOne({user_email:email})
             if(!user)
                 return res.status(400).json({ success: false, message: 'User not found' });
             const isMatch=bcrypt.compare(password,user.password)

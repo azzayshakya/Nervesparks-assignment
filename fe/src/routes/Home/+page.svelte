@@ -1,80 +1,75 @@
-    <!-- Home.svelte -->
-<script>
-    import Navbar from '../component/Navbar.svelte'; // Importing the Navbar component
-  </script>
-  
-  <!-- <div>  -->
-    <!-- Calling the Navbar component -->
-    <Navbar />
-  
-    Your home page content goes here
-    <!-- <div>
-      {#if localStorage.getItem("authToken")}
-       
-      <p>Hey User </p>
-      
-      {:else}
-      <p>Hey not User </p>
-       
-      {/if}
-    </div>
+<script >
+  import { onMount } from 'svelte';
+  import Navbar from '../component/Navbar.svelte';
+    import { goto } from '$app/navigation';
+  // import { goto } from '@sveltejs/kit';
 
+  let authToken = localStorage.getItem('authToken');
+  let userType = '';
+  let selectedCar = null;
 
-
-
-
-
-
-
-
-    <h1> WHO  YOU ARE ?</h1>
-
-
-    <div class="homeUserAuth">
-
-      <div class="userathome">
-        <h1>User</h1>
-        <a  class="loginbutton"  href="/Login">login</a>
-        <a href="/SignUp">SignUp</a>
-       </div>
-    
-       <div class="Dealerathome">
-        <h1>Dealer</h1>
-        <a class="loginbutton" href="/DealerLogin">login</a>
-        <a href="/DealerSignUp">SignUp</a>
-       </div>
-    
-
-    </div>
-   
-  
-
-
-
-    
-  </div>
-   -->
-
-  <style>
-
-
-/* .homeUserAuth{
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-}
-.homeUserAuth a{
-  background-color: red;
-  color: white;
-
-  font-size: 20px;
-  padding: 7px;
-  border-radius: 10px;
+  function getUserTypeFromToken() {
+    if (authToken) {
+      const decodedToken = atob(authToken.split('.')[1]);
+      const { type } = JSON.parse(decodedToken);
+      userType = type;
+      console.log('User Type:', userType);
+    } else {
+      console.log('No auth token found');
+    }
   }
+ /** @type {Array<{ name: string, model: string, car_info: string, type: string, id: string }>} */
+ let cars = [];
+  async function fetchCards() {
+    try {
+      const response = await fetch('http://localhost:4000/cars', {
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      });
+      const data = await response.json();
+      cars = data.data;
+    } catch (error) {
+      console.error('Error fetching cars:', error);
+    }
+  }
+  // function handleButtonClick(car: { name: string, model: string, car_info: string, type: string, id: string }) {
+  //   selectedCar = car;
+  //   goto(`/CarDetails/${car.id}`) // Navigate to child component with car id
+  // }
+  // function handleButtonClick(car: { name: string, model: string, car_info: string, type: string, id: string }) {
+  //   selectedCar = car;
+  //   goto(`/CarDetails/${car.id}`)
+  // }
+ 
 
+  onMount(async () => {
+    getUserTypeFromToken();
+    if (authToken) {
+      await fetchCards();
+    } else {
+      console.log('No auth token found');
+    }
+  });
+</script>
 
-  .homeUserAuth .loginbutton {
+<Navbar />
 
-    padding: 7px 20px;
-  } */
-  </style>
+<div>
+  <ul>
+    {#each cars as car}
+      <li>
+        <h2>{car.name}</h2>
+        <p>Model: {car.model}</p>
+        <p>Info: {car.car_info}</p>
+        <p>Type: {car.type}</p>
+        <p>ID: {car.id}</p>
+        {#if userType === 'user'}
+          <button >Buy</button>
+        {:else if userType === 'dealership'}
+        <button on:click={() => (car.id)}>Add to Cars</button>
+        {/if}
+      </li>
+    {/each} 
+  </ul>
+</div>

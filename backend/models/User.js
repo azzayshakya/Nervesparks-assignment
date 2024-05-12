@@ -1,27 +1,42 @@
-// models/user.js
+const mongoose=require('mongoose')
+mongoose.pluralize(false)
 
-const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  phoneNumber: {
-    type: String,
-    required: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
-});
+const userSchema=mongoose.Schema({
+    user_email:{
+        required:true,
+        type:String
+    },
+    
+    user_location:{
+        required:true,
+        type:String
+    },
+    user_info:{
+        required:true,
+        type:Object
+    },
+    password:{
+        required:true,
+        type:String
+    },
+    vehicle_info:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'SoldVehicle'
+    }]
+})
 
-const User = mongoose.model('User', userSchema);
 
-module.exports = User;
+userSchema.set('toJSON',{
+    transform:(document,returnedObject)=>{
+        returnedObject.id=returnedObject._id.toString()
+        delete returnedObject.password
+        delete returnedObject._id
+        delete returnedObject.__v
+    }
+})
+
+
+const User=mongoose.model('User',userSchema)
+
+module.exports=User

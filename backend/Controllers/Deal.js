@@ -1,6 +1,11 @@
 const express = require('express');
 const User = require('../models/user');
 const Dealership=require('../models/dealership')
+const Car=require('../models/car')
+const Deal=require('../models/deal')
+const SoldVehicle=require('../models/sold_vehicle')
+const mongoose=require('mongoose')
+
 const bcrypt=require('bcrypt')
 const jwt = require("jsonwebtoken")
 const jwtSecret = "mynameisajayshakyaIamFrommyownw"
@@ -8,6 +13,7 @@ const jwtSecret = "mynameisajayshakyaIamFrommyownw"
 
 const authControllers={
     cars:async(req,res)=>{
+        console.log("in cars")
         try{
             const cars=await Car.find({})
             res.status(200).json({
@@ -28,16 +34,17 @@ const authControllers={
 
     deal_complete:async(req,res)=>{
         try{
-            const {dealershipEmail,carID,userEmail}=req.body
+            const {dealershipEmail,dealID,carID,userEmail,vehicle_info}=req.body
+            console.log(req.body)
     
-            if(!dealershipEmail || !carID || !userEmail){
+            if(!dealershipEmail || !carID || !userEmail || !dealID || !vehicle_info){
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
     
             
             const sold_vehicle=new SoldVehicle({
-                car_id:mongoose.Types.ObjectId(carID)
-    
+                car_id:new mongoose.Types.ObjectId(carID),
+                vehicle_info:vehicle_info
             })
     
             const sold_vehicle_doc=await sold_vehicle.save()
@@ -46,30 +53,25 @@ const authControllers={
                 user_email:userEmail
             },{
                 $addToSet:{
-                    vehicle_info:mongoose.Types.ObjectId(sold_vehicle_doc.id)
+                    vehicle_info:new mongoose.Types.ObjectId(sold_vehicle_doc.id)
                 }
             })
-    
-            const deal=new Deal({
-                car_id:mongoose.Types.ObjectId(carID)
-            })
-    
-            const deal_doc=await deal.save()
-    
+        
             
             await Dealership.findOneAndUpdate({
                 dealership_email:dealershipEmail
             },{
                 $addToSet:{
-                    sold_vehicles:mongoose.Types.ObjectId(carID),
-                    deals:mongoose.Types.ObjectId(deal_doc.id)
+                    sold_vehicles:new mongoose.Types.ObjectId(sold_vehicle_doc.id),
+                    
                 },
                 $pull:{
-                    car:{
-                        $ne:mongoose.Types.ObjectId(carID)
-                    }
+                    deals:new mongoose.Types.ObjectId(dealID)
                 }
             },{new:true})
+
+
+            await Deal.findOneAndDelete({_id:new mongoose.Types.ObjectId(dealID)})
     
     
     
@@ -96,7 +98,7 @@ const authControllers={
             if(!dealershipEmail){
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
-            const dealership=await Dealership.findOne({dealership_email:dealershipEmail}).populate('cars')
+            const dealership=await Dealership.findOne({dealership_email:dealershipEmail}).populate('cars').exec()
             res.status(200).json({
                 data:dealership.cars,
                 error:null
@@ -117,7 +119,14 @@ const authControllers={
             if(!dealershipEmail){
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
-            const dealership=await Dealership.findOne({dealership_email:dealershipEmail}).populate('deals')
+            const dealership=await Dealership.findOne({dealership_email:dealershipEmail}).populate(
+                {
+                    path:'deals',
+                    populate:{
+                        path:'car_id'
+                    }
+                }
+            )
             res.status(200).json({
                 data:dealership.deals,
                 error:null
@@ -138,17 +147,17 @@ const authControllers={
             if(!carID){
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
-            const dealership=await Dealership.findOne(
+            const dealership=await Dealership.find(
                 {
                 cars:{
                     $elemMatch:{
-                        $eq:mongoose.Types.ObjectId(carID)
+                        $eq:new mongoose.Types.ObjectId(carID)
                     }
                 }
             }
-        ).populate('deals')
+        )//.populate('deals')
             res.status(200).json({
-                data:dealership.deals,
+                data:dealership,
                 error:null
             })
         }
@@ -171,34 +180,35 @@ const authControllers={
                 {
                     user_email:userEmail
                 }
-            ).populate('vehicle_info')
+            ).populate({
+                path:'vehicle_info',
+                populate:{
+                    path:'car_id'
+                }
+            }
+        )
     
             const User_to_process=await User.findOne(
                 {
                     user_email:userEmail
                 }
             )
-            const  dealers={}
+            const  dealers=[]
     
             for(let i=0;i<User_to_process.vehicle_info?.length;i++){
-                const dealership=await Dealership.findOne(
-                    {
-                    sold_vehicles:{
-                        $elemMatch:{
-                            $eq:mongoose.Types.ObjectId(User_to_process.vehicle_info[i])
-                        }
-                    }
+                const soldVehicle=await SoldVehicle.findOne({_id:User_to_process.vehicle_info[i]})
+                const dealership=await Dealership.findOne({ sold_vehicles: { $elemMatch: { $eq:soldVehicle.car_id } } })
+
+                if (dealership)
+                    dealers.push(dealership)
                 }
-            )
-            dealers.push(dealership)
-            }
     
-            user.dealers=dealers
+            // user.dealers=dealers
     
     
     
             res.status(200).json({
-                data:user,
+                data:{user:user,dealers:dealers},
                 error:null
             })
         }
@@ -217,10 +227,10 @@ const authControllers={
             if(!carID){
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
-            const deal=await Deal.find({car_id:carID}).populate('car_id')
+            const deals=await Deal.find({car_id:new mongoose.Types.ObjectId(carID)}).populate('car_id')
     
             res.status(200).json({
-                data:deal,
+                data:deals,
                 error:null
             })
         }
@@ -231,20 +241,23 @@ const authControllers={
                 error:"error in cars data  reading for your given dealership"
             })
         }
-    }, add_dealership:async(req,res)=>{
+    }, 
+    add_dealership:async(req,res)=>{
         try{
-            const {carID}=req.body
-            if(!carID){
+            const {carID,dealershipEmail}=req.body
+            console.log(req.body)
+            if(!carID || !dealershipEmail){
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
-            const deal=new Deal({
-              car_id:carID  
+            
+            await Dealership.findOneAndUpdate({dealership_email:dealershipEmail},{
+                $addToSet:{
+                    cars:new mongoose.Types.ObjectId(carID)
+                }
             })
     
-            const deal_doc=await deal.save()
-    
             res.status(200).json({
-                data:deal_doc,
+                data:{msg:"successfully added to dealership"},
                 error:null
             })
         }
@@ -259,15 +272,25 @@ const authControllers={
     },
     add_deal_to_dealership:async(req,res)=>{
         try{
-            const {dealID,dealershipEmail}=req.body
-            if(!dealID || !dealershipEmail){
+            const {dealershipEmail,deal_info,carID}=req.body
+            if( !dealershipEmail || !deal_info || !carID) {
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
+
+            const newDeal= new Deal({
+                car_id:new mongoose.Types.ObjectId(carID),
+                deal_info:deal_info
+            })
+
+            const savedDeal=await newDeal.save()
+
+            
+
             await Dealership.findOneAndUpdate({
                 dealership_email:dealershipEmail
             },{
                 $addToSet:{
-                  deals:mongoose.Types.ObjectId(dealID)  
+                  deals:new mongoose.Types.ObjectId(savedDeal.id)  
                 }
             }
             )
@@ -289,14 +312,19 @@ const authControllers={
     },
     dealership_sold:async(req,res)=>{
         try{
-            const {dealershipEmail}=req.body
+            const {dealershipEmail}=req.query
             if(!dealershipEmail){
                 return res.status(400).json({data:null,error:"input paramters are not sent correctly"})
             }
             const dealership=await Dealership.findOne({
                 dealership_email:dealershipEmail
             }
-            ).populate('sold_vehicles')
+            ).populate({
+                path:'sold_vehicles',
+                populate:{
+                    path:'car_id'
+                }
+            })
     
             res.status(200).json({
                 data:dealership.sold_vehicles,
